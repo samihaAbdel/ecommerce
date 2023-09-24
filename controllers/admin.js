@@ -39,9 +39,13 @@ module.exports.signIn = async (req, res) => {
     if (user) {
       if (user.authenticate(password) && user.role === "admin") {
         // console.log(password);
-        const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-          expiresIn: "1h",
-        });
+        const token = jwt.sign(
+          { _id: user._id, role: user.role },
+          process.env.JWT_SECRET,
+          {
+            expiresIn: "1h",
+          }
+        );
 
         // console.log(token);
         const { _id, firstName, lastName, email, role, fullName } = user;

@@ -1,24 +1,30 @@
 const express = require("express");
-const Category = require("../models/category.js");
-const slugify = require("slugify");
+const { addCategory, getCategories } = require("../controllers/category");
+const { requireSignin, adminMiddleware } = require("../middleware");
+
 const router = express.Router();
+const multer = require("multer");
+const shortid = require("shortid");
+const path = require("path");
 
-router.post("/create", async (req, res) => {
-  try {
-    const categoryObj = {
-      name: req.body.name,
-      slug: slugify(req.body.name),
-    };
-
-    if (req.body.parentId) {
-      categoryObj.parentId = req.body.parentId;
-    }
-    const cat = await new Category(categoryObj);
-    cat.save();
-    return res.status(201).json({ msg: "Category is created:", cat });
-  } catch (error) {
-    return res.status(400).json({ error });
-  }
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(path.dirname(__dirname), "uploads"));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, shortid.generate() + "-" + file.originalname);
+  },
 });
+const upload = multer({ storage });
+
+router.post(
+  "/create",
+  requireSignin,
+  adminMiddleware,
+  upload.single("categoryImage"),
+  addCategory
+);
+router.get("/getCategory", getCategories);
 
 module.exports = router;

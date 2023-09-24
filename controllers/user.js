@@ -17,7 +17,8 @@ module.exports.signUp = async (req, res) => {
       lastName,
       email,
       password,
-      userName,
+      userName: Math.random().toString(),
+      role: "user",
     });
     const savedUser = await user.save();
     return res
@@ -27,6 +28,7 @@ module.exports.signUp = async (req, res) => {
     return res.status(400).json({ error: error.message });
   }
 };
+
 module.exports.signIn = async (req, res) => {
   // console.log("bonjour");
   try {
@@ -37,9 +39,13 @@ module.exports.signIn = async (req, res) => {
     if (user) {
       if (user.authenticate(password)) {
         // console.log(password);
-        const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-          expiresIn: "1h",
-        });
+        const token = jwt.sign(
+          { _id: user._id, role: user.role },
+          process.env.JWT_SECRET,
+          {
+            expiresIn: "1h",
+          }
+        );
 
         // console.log(token);
         const { _id, firstName, lastName, email, role, fullName } = user;
